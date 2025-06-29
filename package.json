@@ -1,0 +1,49 @@
+{
+  "name": "@tekfly/ide-mesh-suite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure IDE with Master-LLM console integrating ChatGPT Pro and Claude Max",
+  "author": "Tekfly <dev@tekfly.io>",
+  "license": "PROPRIETARY",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{js,ts,tsx,md,json}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "typecheck": "turbo run typecheck",
+    "security:scan": "turbo run security:scan",
+    "docker:build": "turbo run docker:build",
+    "docker:push": "turbo run docker:push",
+    "deploy:staging": "turbo run deploy:staging",
+    "deploy:production": "turbo run deploy:production"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-security": "^2.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{md,json}": [
+      "prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@8.12.1"
+}
