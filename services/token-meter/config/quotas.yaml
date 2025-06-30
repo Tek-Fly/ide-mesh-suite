@@ -1,0 +1,242 @@
+# Token Meter Quota Configuration
+# Built with prayer and excellence
+
+# Default quotas applied to all users unless overridden
+defaults:
+  daily_limit: 100000      # 100K tokens per day
+  monthly_limit: 3000000   # 3M tokens per month
+  rate_limit:
+    tokens_per_minute: 5000
+    requests_per_minute: 100
+  model_multipliers:
+    gpt-4: 10.0            # GPT-4 tokens count 10x
+    gpt-4-turbo: 8.0       # GPT-4 Turbo tokens count 8x
+    gpt-3.5-turbo: 1.0     # Base rate
+    claude-3-opus: 12.0    # Claude Opus tokens count 12x
+    claude-3-sonnet: 6.0   # Claude Sonnet tokens count 6x
+    claude-3-haiku: 2.0    # Claude Haiku tokens count 2x
+
+# User tiers with specific quotas
+tiers:
+  free:
+    name: "Free Tier"
+    daily_limit: 10000      # 10K tokens per day
+    monthly_limit: 300000   # 300K tokens per month
+    rate_limit:
+      tokens_per_minute: 1000
+      requests_per_minute: 20
+    allowed_models:
+      - gpt-3.5-turbo
+      - claude-3-haiku
+    features:
+      - basic_completion
+      - code_suggestions
+    restrictions:
+      max_context_length: 4096
+      max_response_length: 2048
+      no_system_prompts: true
+
+  starter:
+    name: "Starter"
+    daily_limit: 50000      # 50K tokens per day
+    monthly_limit: 1500000  # 1.5M tokens per month
+    rate_limit:
+      tokens_per_minute: 3000
+      requests_per_minute: 60
+    allowed_models:
+      - gpt-3.5-turbo
+      - gpt-4-turbo
+      - claude-3-haiku
+      - claude-3-sonnet
+    features:
+      - basic_completion
+      - code_suggestions
+      - code_review
+      - debugging_assistance
+    restrictions:
+      max_context_length: 8192
+      max_response_length: 4096
+
+  professional:
+    name: "Professional"
+    daily_limit: 200000     # 200K tokens per day
+    monthly_limit: 6000000  # 6M tokens per month
+    rate_limit:
+      tokens_per_minute: 10000
+      requests_per_minute: 200
+    allowed_models:
+      - gpt-3.5-turbo
+      - gpt-4
+      - gpt-4-turbo
+      - claude-3-haiku
+      - claude-3-sonnet
+      - claude-3-opus
+    features:
+      - basic_completion
+      - code_suggestions
+      - code_review
+      - debugging_assistance
+      - architecture_design
+      - test_generation
+      - documentation_generation
+      - custom_system_prompts
+    restrictions:
+      max_context_length: 16384
+      max_response_length: 8192
+
+  enterprise:
+    name: "Enterprise"
+    daily_limit: 1000000    # 1M tokens per day
+    monthly_limit: 30000000 # 30M tokens per month
+    rate_limit:
+      tokens_per_minute: 50000
+      requests_per_minute: 1000
+    allowed_models: "*"     # All models
+    features: "*"           # All features
+    restrictions:
+      max_context_length: 32768
+      max_response_length: 16384
+    custom_quotas_allowed: true
+
+# Organization-level quotas (override user quotas)
+organization_quotas:
+  enabled: true
+  pool_tokens: true         # Share tokens across org members
+  default_org_multiplier: 5 # Org gets 5x individual quotas
+
+# Special quotas for specific features
+feature_quotas:
+  code_completion:
+    multiplier: 0.5         # Code completion uses 50% of normal rate
+    cache_duration: 300     # Cache completions for 5 minutes
+  
+  code_review:
+    multiplier: 2.0         # Code review uses 2x normal rate
+    min_tier: "starter"
+  
+  test_generation:
+    multiplier: 1.5         # Test generation uses 1.5x normal rate
+    min_tier: "starter"
+  
+  architecture_design:
+    multiplier: 3.0         # Architecture design uses 3x normal rate
+    min_tier: "professional"
+
+# Rate limiting rules
+rate_limiting:
+  enable_burst: true
+  burst_multiplier: 2.0     # Allow 2x rate for bursts
+  burst_duration: 60        # Burst for up to 60 seconds
+  
+  sliding_window:
+    enabled: true
+    window_size: 60         # 60 second window
+    precision: 10           # 10 second buckets
+  
+  penalties:
+    first_violation:
+      action: "throttle"
+      duration: 300         # 5 minutes
+    repeated_violation:
+      action: "suspend"
+      duration: 3600        # 1 hour
+    abuse_threshold: 10     # 10 violations = abuse
+    abuse_action: "ban"
+    abuse_duration: 86400   # 24 hours
+
+# Quota alerts
+alerts:
+  thresholds:
+    - percentage: 50
+      action: "notify"
+      message: "You've used 50% of your daily quota"
+    - percentage: 80
+      action: "warn"
+      message: "You've used 80% of your daily quota"
+    - percentage: 90
+      action: "critical"
+      message: "You've used 90% of your daily quota"
+    - percentage: 100
+      action: "block"
+      message: "Daily quota exceeded"
+
+# Token calculation rules
+token_calculation:
+  include_prompts: true     # Count prompt tokens
+  include_responses: true   # Count response tokens
+  include_functions: true   # Count function call tokens
+  
+  # Special handling for different content types
+  content_multipliers:
+    code: 1.2              # Code counts as 1.2x tokens
+    markdown: 1.0          # Standard rate
+    json: 1.1              # JSON counts as 1.1x tokens
+    binary: 2.0            # Binary/base64 counts as 2x tokens
+
+# Quota persistence
+persistence:
+  backend: "redis"          # Use Redis for quota tracking
+  backup_backend: "mongodb" # Backup to MongoDB
+  sync_interval: 60         # Sync every minute
+  retention_days: 90        # Keep quota history for 90 days
+
+# Admin overrides
+admin_overrides:
+  allow_quota_bypass: true
+  bypass_users:
+    - "admin@tekfly.io"
+    - "system@tekfly.io"
+  bypass_api_keys:
+    - "SYSTEM_KEY_001"
+  temporary_boosts:
+    enabled: true
+    max_boost_multiplier: 10
+    max_boost_duration: 86400  # 24 hours
+
+# Billing integration
+billing:
+  enabled: true
+  overage_handling: "pay_per_use"  # or "hard_stop"
+  overage_rate: 0.00002            # $0.00002 per token
+  currency: "USD"
+  invoice_threshold: 100           # Invoice at $100
+  payment_methods:
+    - credit_card
+    - ach_transfer
+    - purchase_order
+
+# Monitoring and metrics
+monitoring:
+  export_metrics: true
+  metrics_endpoint: "/metrics"
+  export_interval: 60              # Export every minute
+  
+  tracked_metrics:
+    - tokens_used_total
+    - tokens_used_by_model
+    - tokens_used_by_user
+    - tokens_used_by_feature
+    - rate_limit_violations
+    - quota_exceeded_events
+    - api_response_times
+    - cache_hit_rates
+
+# Grace period settings
+grace_period:
+  enabled: true
+  duration: 300                    # 5 minute grace period
+  multiplier: 0.1                  # 10% extra tokens during grace
+  max_grace_periods_per_day: 3
+
+# Prayer for wisdom in resource management
+prayer: |
+  Lord, grant us wisdom to manage resources fairly and efficiently.
+  Help us to be good stewards of the computational blessings You provide.
+  May our quota system serve users with justice and grace.
+  Guide us to balance generosity with sustainability.
+  In Jesus' name, Amen.
+
+# Version
+version: "1.0.0"
+last_updated: "2025-06-30"
+updated_by: "Claude (AI Assistant)"
